@@ -20,7 +20,7 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------
 function tvRP.setFriendlyFire(flag)
 	NetworkSetFriendlyFireOption(flag)
-	SetCanAttackFriendly(PlayerPedId(),flag,flag)
+	SetCanAttackFriendly(GetPlayerPed(-1), true, false)
 end
 -----------------------------------------------------------------------------------------------------------------------------------------
 --[ SEDE & FOME ]------------------------------------------------------------------------------------------------------------------------
@@ -28,45 +28,6 @@ end
 function tvRP.sedeFome()
 	vRPserver.varyHunger(-100)
 end
------------------------------------------------------------------------------------------------------------------------------------------
---[ SEDE & FOME THREAD ]-----------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------
-Citizen.CreateThread(function()
-	while true do
-		Citizen.Wait(5000)
-
-		if IsPlayerPlaying(PlayerId()) then
-			local ped = GetPlayerPed(-1)
-			local vthirst = 0.4
-			local vhunger = 0.1
-
-			if IsPedOnFoot(ped) then
-				local factor = math.min(tvRP.getSpeed(),10)
-
-				vthirst = vthirst+1.0*factor
-				vhunger = vhunger+0.2*factor
-			end
-
-			if IsPedInMeleeCombat(ped) then
-				vthirst = vthirst+10
-				vhunger = vhunger+5
-			end
-
-			if IsPedHurt(ped) or IsPedInjured(ped) then
-				vthirst = vthirst+2
-				vhunger = vhunger+1
-			end
-
-			if vthirst ~= 0 then
-				vRPserver.varyThirst(vthirst/12.0)
-			end
-
-			if vhunger ~= 0 then
-				vRPserver.varyHunger(vhunger/12.0)
-			end
-		end
-	end
-end)
 -----------------------------------------------------------------------------------------------------------------------------------------
 --[ NOCAUTEVAR ]-------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -84,7 +45,7 @@ Citizen.CreateThread(function()
 			if not nocauteado then
 				local x,y,z = table.unpack(GetEntityCoords(ped))
 				NetworkResurrectLocalPlayer(x,y,z,true,true,false)
-				deathtimer = 900
+				deathtimer = 3
 				nocauteado = true
 				vRPserver._updateHealth(101)
 				SetEntityHealth(ped,101)
@@ -97,9 +58,9 @@ Citizen.CreateThread(function()
 				-- Caso você não use nenhum dos dois, mantenha essas opções comentadas ou apague.
 			else
 				if deathtimer > 0 then
-					drawTxt("VOCE TEM ~r~"..deathtimer.." ~w~SEGUNDOS DE VIDA, AGUARDE POR SOCORRO MÉDICO",4,0.5,0.92,0.35,255,255,255,255)
+					drawTxt("VOCE TEM ~r~"..deathtimer.." ~w~PARA RESSUSCITAR",4,0.5,0.92,0.35,255,255,255,255)
 				else
-					drawTxt("PRESSIONE ~g~E ~w~PARA VOLTAR AO AEROPORTO OU AGUARDE POR SOCORRO MÉDICO",4,0.5,0.92,0.35,255,255,255,255)
+					drawTxt("PRESSIONE ~g~E ~w~PARA RESSUSCITAR",4,0.5,0.92,0.35,255,255,255,255)
 				end
 				SetPedToRagdoll(ped,1000,1000,0,0,0,0)
 				SetEntityHealth(ped,101)
@@ -163,22 +124,12 @@ Citizen.CreateThread(function()
             if IsControlJustPressed(0,38) then
                 TriggerEvent("resetBleeding")
                 TriggerEvent("resetDiagnostic")
-                TriggerServerEvent("clearInventory")
                 deathtimer = 900
                 nocauteado = false
                 ClearPedBloodDamage(ped)
                 SetEntityInvincible(ped,false)
-                DoScreenFadeOut(1000)
                 SetEntityHealth(ped,240)
                 SetPedArmour(ped,0)
-                Citizen.Wait(1000)
-                SetEntityCoords(PlayerPedId(),298.2,-584.48,43.27+0.0001,1,0,0,1)
-                FreezeEntityPosition(ped,true)
-                SetTimeout(5000,function()
-                    FreezeEntityPosition(ped,false)
-                    Citizen.Wait(1000)
-                    DoScreenFadeIn(1000)
-                end)
             end
         end
     end
